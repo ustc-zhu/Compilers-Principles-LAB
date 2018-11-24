@@ -542,7 +542,7 @@ void statement(symset fsys)
 		statement(fsys);
 		cx2 = cx;
 		gen(JMP, 0, 0);
-		code[cx1].a = ++cx;	
+		code[cx1].a = cx;	
 		if (sym == SYM_ELSE)//else part
 		{
 			getsym();
