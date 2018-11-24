@@ -11,6 +11,8 @@
 #include "PL0.h"
 #include "set.c"
 
+
+
 //////////////////////////////////////////////////////////////////////
 // print error message.
 void error(int n)
@@ -582,7 +584,9 @@ void statement(symset fsys)
 	}
 	else if (sym == SYM_WHILE)
 	{ // while statement
+		count++;
 		cx1 = cx;
+		Continue_Cx[count] = cx;
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
@@ -602,6 +606,19 @@ void statement(symset fsys)
 		statement(fsys);
 		gen(JMP, 0, cx1);
 		code[cx2].a = cx;
+		code[Break_Cx[count]].a = cx;
+		count--;
+	}
+	else if (sym == SYM_CONTINUE)
+	{
+		gen(JMP, 0, Continue_Cx);
+		getsym();
+	}
+	else if (sym == SYM_BREAK)
+	{
+		Break_Cx[count] = cx;
+		gen(JMP, 0, 0);
+		getsym();
 	}
 	test(fsys, phi, 19);
 } // statement
@@ -893,7 +910,7 @@ void main ()
 	
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
-	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_ELSE, SYM_WHILE, SYM_NULL);
+	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_ELSE, SYM_WHILE, SYM_CONTINUE, SYM_BREAK, SYM_NULL);
 	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_MINUS, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables

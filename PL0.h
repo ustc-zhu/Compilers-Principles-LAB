@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define NRW        12     // number of reserved words
+#define NRW        14     // number of reserved words
 #define TXMAX      500    // length of identifier table
 #define MAXNUMLEN  14     // maximum number of digits in numbers
 #define NSYM       10     // maximum number of symbols in array ssym and csym
@@ -13,6 +13,8 @@
 #define MAXSYM     30     // maximum number of symbols  
 
 #define STACKSIZE  1000   // maximum storage
+
+#define MAXDEPTH   32     //maximum depth of while
 
 enum symtype
 {
@@ -46,7 +48,9 @@ enum symtype
 	SYM_CALL,
 	SYM_CONST,
 	SYM_VAR,
-	SYM_PROCEDURE
+	SYM_PROCEDURE,
+	SYM_CONTINUE,
+	SYM_BREAK
 };
 
 enum idtype
@@ -125,6 +129,7 @@ int  err;
 int  cx;         // index of current instruction to be generated.
 int  level = 0;
 int  tx = 0;
+int count = 0;    //index of depth of while
 
 char line[80];
 
@@ -134,13 +139,15 @@ char* word[NRW + 1] =
 {
 	"", /* place holder */
 	"begin", "call", "const", "do", "end","if", "else",
-	"odd", "procedure", "then", "var", "while"
+	"odd", "procedure", "then", "var", "while", "continue",
+	"break"
 };
 
 int wsym[NRW + 1] =
 {
 	SYM_NULL, SYM_BEGIN, SYM_CALL, SYM_CONST, SYM_DO, SYM_END,
-	SYM_IF, SYM_ELSE, SYM_ODD, SYM_PROCEDURE, SYM_THEN, SYM_VAR, SYM_WHILE
+	SYM_IF, SYM_ELSE, SYM_ODD, SYM_PROCEDURE, SYM_THEN, SYM_VAR, SYM_WHILE,
+	SYM_CONTINUE, SYM_BREAK
 };
 
 int ssym[NSYM + 1] =
@@ -179,4 +186,6 @@ typedef struct
 
 FILE* infile;
 
+int Continue_Cx[MAXDEPTH];
+int Break_Cx[MAXDEPTH];
 // EOF PL0.h
