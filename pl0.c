@@ -538,7 +538,9 @@ void statement(symset fsys)
 		cx1 = cx;
 		gen(JPC, 0, 0);
 		statement(fsys);
-		code[cx1].a = cx;	
+		cx2 = cx;
+		gen(JMP, 0, 0);
+		code[cx1].a = ++cx;	
 		if (sym == SYM_ELSE)//else part
 		{
 			getsym();
@@ -547,6 +549,7 @@ void statement(symset fsys)
 			statement(fsys);
 			code[cx1].a = cx;
 		}
+		code[cx2].a = cx;
 	}
 	else if (sym == SYM_BEGIN)
 	{ // block
