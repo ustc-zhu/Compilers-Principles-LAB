@@ -522,7 +522,7 @@ void statement(symset fsys)
 	else if (sym == SYM_IF)
 	{ // if statement
 		getsym();
-		set1 = createset(SYM_THEN, SYM_DO, SYM_NULL);
+		set1 = createset(SYM_ELSE, SYM_THEN, SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
 		condition(set);
 		destroyset(set1);
@@ -539,6 +539,14 @@ void statement(symset fsys)
 		gen(JPC, 0, 0);
 		statement(fsys);
 		code[cx1].a = cx;	
+		if (sym == SYM_ELSE)//else part
+		{
+			getsym();
+			cx1 = cx;
+			gen(JPC, 0, 0);
+			statement(fsys);
+			code[cx1].a = cx;
+		}
 	}
 	else if (sym == SYM_BEGIN)
 	{ // block
@@ -882,7 +890,7 @@ void main ()
 	
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
-	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE, SYM_NULL);
+	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_ELSE, SYM_WHILE, SYM_NULL);
 	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_MINUS, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables
