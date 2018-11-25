@@ -358,6 +358,51 @@ void factor(symset fsys)
 	} // if
 } // factor
 
+void factor_num(symset fsys)
+{
+	void expression(symset fsys);
+	int i;
+	symset set;
+	
+	test(facbegsys, fsys, 24); // The symbol can not be as the beginning of an expression.
+
+	if (inset(sym, facbegsys))
+	{
+		if (sym == SYM_NUMBER)
+		{
+			if (num > MAXADDRESS)
+			{
+				error(25); // The number is too great.
+				num = 0;
+			}
+			gen(LIT, 0, num);
+			getsym();
+		}
+		else if (sym == SYM_LPAREN)
+		{
+			getsym();
+			set = uniteset(createset(SYM_RPAREN, SYM_NULL), fsys);
+			expression(set);
+			destroyset(set);
+			if (sym == SYM_RPAREN)
+			{
+				getsym();
+			}
+			else
+			{
+				error(22); // Missing ')'.
+			}
+		}
+		else if(sym == SYM_MINUS) // UMINUS,  Expr -> '-' Expr
+		{  
+			 getsym();
+			 factor(fsys);
+			 gen(OPR, 0, OPR_NEG);
+		}
+		test(fsys, createset(SYM_LPAREN, SYM_NULL), 23);
+	} // if
+}
+
 //////////////////////////////////////////////////////////////////////
 void term(symset fsys)
 {
@@ -383,10 +428,89 @@ void term(symset fsys)
 	destroyset(set);
 } // term
 
+void term_num(fsys){
+	int mulop;
+	symset set;
+	
+	set = uniteset(fsys, createset(SYM_TIMES, SYM_SLASH, SYM_NULL));
+	factor_num(set);
+	while (sym == SYM_TIMES || sym == SYM_SLASH)
+	{
+		mulop = sym;
+		getsym();
+		factor(set);
+		if (mulop == SYM_TIMES)
+		{
+			gen(OPR, 0, OPR_MUL);
+		}
+		else
+		{
+			gen(OPR, 0, OPR_DIV);
+		}
+	} // while
+	destroyset(set);
+}
+
+void numfunc(fsys){
+	int addop;
+	symset set;
+	set = uniteset(fsys, createset(SYM_PLUS, SYM_MINUS, SYM_NULL));
+	
+	term_num(set);
+	while (sym == SYM_PLUS || sym == SYM_MINUS)
+	{
+		addop = sym;
+		getsym();
+		term(set);
+		if (addop == SYM_PLUS)
+		{
+			gen(OPR, 0, OPR_ADD);
+		}
+		else
+		{
+			gen(OPR, 0, OPR_MIN);
+		}
+	} // while
+
+	destroyset(set);
+}
 //////////////////////////////////////////////////////////////////////
 void expression(symset fsys)
 {
-	int addop;
+	void BSE(fsys);
+	if(sym == SYM_IDENTIFIER){
+		int i, sym1;
+		mask* mk;
+		if (! (i = position(id)))
+		{
+			error(11); // Undeclared identifier.
+		}
+		else if (table[i].kind != ID_VARIABLE)
+		{
+			error(12); // Illegal assignment.
+			i = 0;
+		}
+		getsym();
+		sym1 = sym;
+		mk = (mask*)&table[i];
+		if(i && (sym1 == SYM_PLUS || sym == SYM_MINUS || sym == SYM_TIMES || sym == SYM_SLASH))
+		{
+			gen(LOD, level - mk->level, mk->address);
+		}
+		BSE(fsys);
+		if (i && sym1 == SYM_BECOMES)
+		{
+			gen(STO, level - mk->level, mk->address);
+			gen(LOD, level - mk->level, mk->address);
+		}
+	}
+	else
+	{
+		numfunc(fsys);
+	}
+	
+	
+	/*int addop;
 	symset set;
 
 	set = uniteset(fsys, createset(SYM_PLUS, SYM_MINUS, SYM_NULL));
@@ -407,7 +531,7 @@ void expression(symset fsys)
 		}
 	} // while
 
-	destroyset(set);
+	destroyset(set);*/
 } // expression
 
 //////////////////////////////////////////////////////////////////////
@@ -460,6 +584,61 @@ void condition(symset fsys)
 		} // else
 	} // else
 } // condition
+
+void OPS(fsys){
+	int addop;
+	symset set_add;
+	set_add = uniteset(fsys, createset(SYM_PLUS, SYM_MINUS, SYM_NULL));
+	while (sym == SYM_PLUS || sym == SYM_MINUS)
+	{
+		addop = sym;
+		getsym();
+		term(set_add);
+		if (addop == SYM_PLUS)
+		{
+			gen(OPR, 0, OPR_ADD);
+		}
+		else
+		{
+			gen(OPR, 0, OPR_MIN);
+		}
+	} // while
+	int mulop;
+	symset set_mul;
+	set_mul = uniteset(fsys, createset(SYM_TIMES, SYM_SLASH, SYM_NULL));
+	while (sym == SYM_TIMES || sym == SYM_SLASH)
+	{
+		mulop = sym;
+		getsym();
+		factor(set_mul);
+		if (mulop == SYM_TIMES)
+		{
+			gen(OPR, 0, OPR_MUL);
+		}
+		else
+		{
+			gen(OPR, 0, OPR_DIV);
+		}
+	} // while
+	destroyset(set_add);
+	destroyset(set_mul);
+}
+
+void BSE(fsys){
+	int i;
+	if(sym == SYM_BECOMES){
+		getsym();
+		expression(fsys);
+	}
+	
+	else if(sym == SYM_MINUS || sym == SYM_PLUS || sym == SYM_TIMES || sym == SYM_SLASH)
+	{
+		OPS(fsys);
+	}
+	else return;
+	
+}
+
 
 //////////////////////////////////////////////////////////////////////
 void statement(symset fsys)
