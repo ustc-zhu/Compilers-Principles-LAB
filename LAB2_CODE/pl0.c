@@ -493,7 +493,7 @@ void expression(symset fsys)
 		getsym();
 		sym1 = sym;
 		mk = (mask*)&table[i];
-		if(i && (sym1 == SYM_PLUS || sym == SYM_MINUS || sym == SYM_TIMES || sym == SYM_SLASH))
+		if(i)
 		{
 			gen(LOD, level - mk->level, mk->address);
 		}
@@ -725,10 +725,15 @@ void statement(symset fsys)
 		if (sym == SYM_ELSE)//else part
 		{
 			getsym();
-			cx1 = cx;
-			gen(JPC, 0, 0);
-			statement(fsys);
-			code[cx1].a = cx;
+			if(sym == SYM_IF){
+				cx1 = cx;
+				gen(JPC, 0, 0);
+				statement(fsys);
+				code[cx1].a = cx;
+			}
+			else{
+				statement(fsys);
+			}
 		}
 		code[cx2].a = cx;
 	}
