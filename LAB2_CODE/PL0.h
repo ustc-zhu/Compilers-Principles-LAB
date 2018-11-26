@@ -186,6 +186,4 @@ typedef struct
 
 FILE* infile;
 
-int Continue_Cx[MAXDEPTH];
-int Break_Cx[MAXDEPTH];
 // EOF PL0.h

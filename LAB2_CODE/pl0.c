@@ -641,7 +641,7 @@ void BSE(fsys){
 
 
 //////////////////////////////////////////////////////////////////////
-void statement(symset fsys)
+void statement(symset fsys, int **breaklist, int **continuelist)
 {
 	int i, cx1, cx2;
 	symset set1, set;
@@ -719,23 +719,25 @@ void statement(symset fsys)
 		}
 		cx1 = cx;
 		gen(JPC, 0, 0);
-		statement(fsys);
+		statement(fsys, breaklist, continuelist);
 		cx2 = cx;
 		gen(JMP, 0, 0);
-		code[cx1].a = cx;	
+		code[cx1].a = cx;
+//		getsym();
 		if (sym == SYM_ELSE)//else part
 		{
 			getsym();
 			if(sym == SYM_IF){
 				cx1 = cx;
 				gen(JPC, 0, 0);
-				statement(fsys);
+				statement(fsys, breaklist, continuelist);
 				code[cx1].a = cx;
 			}
 			else{
-				statement(fsys);
+				statement(fsys, breaklist, continuelist);
 			}
 		}
+		else sym = SYM_SEMICOLON;
 		code[cx2].a = cx;
 	}
 	else if (sym == SYM_BEGIN)
@@ -743,7 +745,7 @@ void statement(symset fsys)
 		getsym();
 		set1 = createset(SYM_SEMICOLON, SYM_END, SYM_NULL);
 		set = uniteset(set1, fsys);
-		statement(set);
+		statement(fsys, breaklist, continuelist);
 		while (sym == SYM_SEMICOLON || inset(sym, statbegsys))
 		{
 			if (sym == SYM_SEMICOLON)
@@ -754,7 +756,7 @@ void statement(symset fsys)
 			{
 				error(10);
 			}
-			statement(set);
+			statement(set, breaklist, continuelist);
 		} // while
 		destroyset(set1);
 		destroyset(set);
@@ -770,8 +772,34 @@ void statement(symset fsys)
 	else if (sym == SYM_WHILE)
 	{ // while statement
 		count++;
+		if(breaklist == NULL && continuelist == NULL){
+			breaklist = (int**)malloc(sizeof(int*) * MAXDEPTH);
+			for(size_t i = 0; i < MAXDEPTH; i++)
+			{
+				breaklist[i] = (int*)malloc(sizeof(int)*MAXDEPTH);
+			}
+			continuelist = (int**)malloc(sizeof(int*) * MAXDEPTH);
+			for(size_t i = 0; i < MAXDEPTH; i++)
+			{
+				continuelist[i] = (int*)malloc(sizeof(int)*MAXDEPTH);
+			}
+			
+			for(size_t i = 0; i < MAXDEPTH; i++)
+			{
+				
+				for(size_t j = 0; j < MAXDEPTH; j++)
+				{
+					breaklist[i][j] = 0;
+					continuelist[i][j] = 0;
+				}
+				
+			}
+			
+		}
 		cx1 = cx;
-		Continue_Cx[count] = cx;
+		int i;
+		for(i = 0; continuelist[count][i] != 0; i++);
+		continuelist[count][i] = cx;
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
@@ -790,13 +818,16 @@ void statement(symset fsys)
 		}
 		set1 = createset(SYM_CONTINUE, SYM_BREAK, SYM_NULL);
 		set = uniteset(set1, fsys);
-		statement(set);
+		statement(set, breaklist, continuelist);
 		destroyset(set1);
 		destroyset(set);
 		gen(JMP, 0, cx1);
 		code[cx2].a = cx;
-		if(Break_Cx[count] != 0)   //if break exists
-			code[Break_Cx[count]].a = cx;
+		for(i = 0; breaklist[count][i] != 0; i++){
+		   //if break exists
+			code[breaklist[count][i]].a = cx;
+			breaklist[count][i] = 0;
+		}
 		count--;
 	}
 	else if (sym == SYM_CONTINUE)
@@ -804,7 +835,11 @@ void statement(symset fsys)
 		int sym1 = sym;
 		test(fsys, phi, 19);
 		if (sym1 == sym) {
-			gen(JMP, 0, Continue_Cx[count]);
+			int i;
+			for(i = 0; continuelist[count][i] != 0; i++);
+			i--;
+			gen(JMP, 0, continuelist[count][i]);
+			continuelist[count][i] = 0; 
 			getsym();
 		}//如果没有错误那么进入test，sym不变
 		else
@@ -817,7 +852,9 @@ void statement(symset fsys)
 		int sym1 = sym;
 		test(fsys, phi, 19);
 		if (sym1 == sym) {
-			Break_Cx[count] = cx;
+			int i;
+			for (i = 0; breaklist[count][i] != 0; i++);
+			breaklist[count][i] = cx;
 			gen(JMP, 0, 0);
 			getsym();
 		}//同上
@@ -957,7 +994,7 @@ void block(symset fsys)
 	gen(INT, 0, block_dx);
 	set1 = createset(SYM_SEMICOLON, SYM_END, SYM_NULL);
 	set = uniteset(set1, fsys);
-	statement(set);
+	statement(set, NULL, NULL);
 	destroyset(set1);
 	destroyset(set);
 	gen(OPR, 0, OPR_RET); // return
