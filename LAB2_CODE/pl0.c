@@ -428,7 +428,7 @@ void term(symset fsys)
 	destroyset(set);
 } // term
 
-void term_num(fsys){
+void term_num(symset fsys){
 	int mulop;
 	symset set;
 	
@@ -451,7 +451,7 @@ void term_num(fsys){
 	destroyset(set);
 }
 
-void numfunc(fsys){
+void numfunc(symset fsys){
 	int addop;
 	symset set;
 	set = uniteset(fsys, createset(SYM_PLUS, SYM_MINUS, SYM_NULL));
