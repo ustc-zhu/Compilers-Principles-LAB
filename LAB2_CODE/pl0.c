@@ -773,7 +773,7 @@ void statement(symset fsys)
 		cx1 = cx;
 		Continue_Cx[count] = cx;
 		getsym();
-		set1 = createset(SYM_DO, SYM_CONTINUE, SYM_BREAK, SYM_NULL);
+		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
 		condition(set);
 		destroyset(set1);
@@ -788,7 +788,11 @@ void statement(symset fsys)
 		{
 			error(18); // 'do' expected.
 		}
-		statement(fsys);
+		set1 = createset(SYM_CONTINUE, SYM_BREAK, SYM_NULL);
+		set = uniteset(set1, fsys);
+		statement(set);
+		destroyset(set1);
+		destroyset(set);
 		gen(JMP, 0, cx1);
 		code[cx2].a = cx;
 		if(Break_Cx[count] != 0)   //if break exists
@@ -797,14 +801,30 @@ void statement(symset fsys)
 	}
 	else if (sym == SYM_CONTINUE)
 	{
-		gen(JMP, 0, Continue_Cx);
-		getsym();
+		int sym1 = sym;
+		test(fsys, phi, 19);
+		if (sym1 == sym) {
+			gen(JMP, 0, Continue_Cx);
+			getsym();
+		}//如果没有错误那么进入test，sym不变
+		else
+		{
+			return;
+		}
 	}
 	else if (sym == SYM_BREAK)
 	{
-		Break_Cx[count] = cx;
-		gen(JMP, 0, 0);
-		getsym();
+		int sym1 = sym;
+		test(fsys, phi, 19);
+		if (sym1 == sym) {
+			Break_Cx[count] = cx;
+			gen(JMP, 0, 0);
+			getsym();
+		}//同上
+		else
+		{
+			return;
+		}
 	}
 	test(fsys, phi, 19);
 } // statement
