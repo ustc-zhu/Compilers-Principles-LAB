@@ -804,7 +804,7 @@ void statement(symset fsys)
 		int sym1 = sym;
 		test(fsys, phi, 19);
 		if (sym1 == sym) {
-			gen(JMP, 0, Continue_Cx);
+			gen(JMP, 0, Continue_Cx[count]);
 			getsym();
 		}//如果没有错误那么进入test，sym不变
 		else
