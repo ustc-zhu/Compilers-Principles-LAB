@@ -646,6 +646,7 @@ void statement(symset fsys)
 	int i, cx1, cx2;
 	symset set1, set;
 
+	//test(fsys, phi, 19);
 	if (sym == SYM_IDENTIFIER)
 	{ // variable assignment
 		mask* mk;
@@ -772,7 +773,7 @@ void statement(symset fsys)
 		cx1 = cx;
 		Continue_Cx[count] = cx;
 		getsym();
-		set1 = createset(SYM_DO, SYM_NULL);
+		set1 = createset(SYM_DO, SYM_CONTINUE, SYM_BREAK, SYM_NULL);
 		set = uniteset(set1, fsys);
 		condition(set);
 		destroyset(set1);
@@ -790,7 +791,8 @@ void statement(symset fsys)
 		statement(fsys);
 		gen(JMP, 0, cx1);
 		code[cx2].a = cx;
-		code[Break_Cx[count]].a = cx;
+		if(Break_Cx[count] != 0)   //if break exists
+			code[Break_Cx[count]].a = cx;
 		count--;
 	}
 	else if (sym == SYM_CONTINUE)
@@ -1094,7 +1096,7 @@ void main ()
 	
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
-	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_ELSE, SYM_WHILE, SYM_CONTINUE, SYM_BREAK, SYM_NULL);
+	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_ELSE, SYM_WHILE, SYM_NULL);
 	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_MINUS, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables
