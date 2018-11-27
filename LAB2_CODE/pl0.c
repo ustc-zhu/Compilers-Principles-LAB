@@ -727,15 +727,8 @@ void statement(symset fsys, int **breaklist, int **continuelist)
 		if (sym == SYM_ELSE)//else part
 		{
 			getsym();
-			if(sym == SYM_IF){
-				cx1 = cx;
-				gen(JPC, 0, 0);
-				statement(fsys, breaklist, continuelist);
-				code[cx1].a = cx;
-			}
-			else{
-				statement(fsys, breaklist, continuelist);
-			}
+			statement(fsys, breaklist, continuelist);
+
 		}
 		else sym = SYM_SEMICOLON;
 		code[cx2].a = cx;
@@ -841,7 +834,7 @@ void statement(symset fsys, int **breaklist, int **continuelist)
 			gen(JMP, 0, continuelist[count][i]);
 			continuelist[count][i] = 0; 
 			getsym();
-		}//Èç¹ûÃ»ÓÐ´íÎóÄÇÃ´½øÈëtest£¬sym²»±ä
+		}//ï¿½ï¿½ï¿½Ã»ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½testï¿½ï¿½symï¿½ï¿½ï¿½ï¿½
 		else
 		{
 			return;
@@ -857,7 +850,7 @@ void statement(symset fsys, int **breaklist, int **continuelist)
 			breaklist[count][i] = cx;
 			gen(JMP, 0, 0);
 			getsym();
-		}//Í¬ÉÏ
+		}//Í¬ï¿½ï¿½
 		else
 		{
 			return;
