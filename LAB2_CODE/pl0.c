@@ -493,7 +493,7 @@ void expression(symset fsys)
 		getsym();
 		sym1 = sym;
 		mk = (mask*)&table[i];
-		if(i)
+		if(i && sym1 != SYM_BECOMES)
 		{
 			gen(LOD, level - mk->level, mk->address);
 		}
