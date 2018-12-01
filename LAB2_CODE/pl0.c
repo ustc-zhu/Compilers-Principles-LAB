@@ -496,6 +496,7 @@ void statement(symset fsys, int **breaklist, int *continuelist)
 	if (sym == SYM_IDENTIFIER)
 	{ // variable assignment
 		assign_exp(fsys);
+		cx--;      //pop the last LOD instruction
 	}
 	else if (sym == SYM_CALL)
 	{ // procedure call
